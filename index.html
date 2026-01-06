@@ -3,100 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Management System</title>
+    <title>Library Management System Professional</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="dashboard-container">
-      <aside class="sidebar">
-        <div class="sidebar-logo">
-          <h1>LibraryMS</h1>
-        </div>
-        
-        <nav class="sidebar-nav">
-          <ul>
-            <li><a href="#" class="nav-link active" onclick="showSection('dashboard-section', this)">Dashboard</a></li>
-            <li><a href="#" class="nav-link" onclick="showSection('books-section', this)">Books Management</a></li>
-            <li><a href="#" class="nav-link" onclick="showSection('issue-return-section', this)">Issue / Return</a></li>
-          </ul>
-        </nav>
-      </aside>
-
-      <main class="main-content">
-        
-        <header class="main-header">
-            <div class="search-bar">
-                <input type="search" id="search-input" placeholder="Search books by title, student, or ID..." class="search-input">
-            </div>
-            <div class="user-profile">
-                <div class="profile-icon"><span>Admin</span></div>
-            </div>
-        </header>
-
-        <section id="dashboard-section" class="content-section">
-          <h2 class="page-title">Dashboard Overview</h2>
-          <section class="stats-section">
-            <article class="stat-card">
-              <h3 class="stat-title">Total Books</h3>
-              <p class="stat-value" id="total-books-count">0</p>
-            </article>
-            <article class="stat-card">
-              <h3 class="stat-title">Issued Books</h3>
-              <p class="stat-value" id="issued-books-count">0</p>
-            </article>
-            <article class="stat-card">
-              <h3 class="stat-title">Overdue</h3>
-              <p class="stat-value" id="overdue-books-count">0</p>
-            </article>
-          </section>
-        </section>
-
-        <section id="books-section" class="content-section hidden">
-          <h2 class="page-title">Manage Books</h2>
-          
-          <div class="add-book-container">
-            <h3 class="section-title" id="form-title">Add New Book</h3>
-            <form id="book-form" class="book-form">
-                <input type="hidden" id="edit-index" value="-1"> <input type="text" id="book-title" placeholder="Book Title" required>
-                <input type="text" id="student-name" placeholder="Student Name (or 'None')" required>
-                <input type="date" id="issue-date" required>
-                <select id="book-status">
-                    <option value="Available">Available</option>
-                    <option value="Issued">Issued</option>
-                    <option value="Overdue">Overdue</option>
-                </select>
-                <button type="submit" class="btn-primary" id="form-btn">+ Add Book</button>
+    <div id="login-container" class="login-wrapper">
+        <div class="login-box">
+            <h1>Librarian Access</h1>
+            <p>Please verify your identity to access the database.</p>
+            <form id="login-form">
+                <input type="password" id="password-input" placeholder="Enter Admin Password" required>
+                <button type="submit">Login</button>
             </form>
-          </div>
+            <p id="login-error" style="color: red; display: none; margin-top: 10px;">Incorrect Password!</p>
+        </div>
+    </div>
 
-          <div class="recent-activity">
-            <h3 class="section-title">All Books Library</h3>
-            <table class="recent-books-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Student</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="book-list">
-                </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section id="issue-return-section" class="content-section hidden">
-            <h2 class="page-title">Issue & Return</h2>
-            <div class="add-book-container">
-                <p>To Issue or Return a book, please go to the <b>"Books Management"</b> tab and click the <b>Edit</b> button to change the status of a book.</p>
+    <div id="app-container" class="dashboard-container hidden">
+        
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>LibraryMS</h1>
             </div>
-        </section>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li onclick="switchTab('dashboard')">
+                        <a href="#" class="nav-link active" id="link-dashboard">Dashboard</a>
+                    </li>
+                    <li onclick="switchTab('manage')">
+                        <a href="#" class="nav-link" id="link-manage">Manage Books</a>
+                    </li>
+                    <li onclick="switchTab('issue')">
+                        <a href="#" class="nav-link" id="link-issue">Issue Book</a>
+                    </li>
+                    <li onclick="switchTab('return')">
+                        <a href="#" class="nav-link" id="link-return">Return Book</a>
+                    </li>
+                    <li onclick="logout()">
+                        <a href="#" class="nav-link logout-btn">Logout</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
-      </main>
+        <main class="main-content">
+            
+            <header class="main-header">
+                <h2 id="page-title">Dashboard Overview</h2>
+                <div class="user-info">
+                    <span>Admin User</span>
+                    <div class="status-dot"></div>
+                </div>
+            </header>
+
+            <section id="tab-dashboard" class="content-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Books</h3>
+                        <p class="stat-number" id="total-books">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Issued Books</h3>
+                        <p class="stat-number" id="issued-books">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Available Books</h3>
+                        <p class="stat-number" id="avail-books">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tab-manage" class="content-section hidden">
+                <div class="form-container">
+                    <h3>Add New Book</h3>
+                    <form id="add-book-form">
+                        <input type="text" id="new-book-title" placeholder="Book Title" required>
+                        <input type="text" id="new-book-id" placeholder="Book ID (e.g. 101)" required>
+                        <button type="submit" class="btn-primary">Add to Library</button>
+                    </form>
+                </div>
+
+                <div class="table-container">
+                    <h3>Library Database</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Holder</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="book-table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="tab-issue" class="content-section hidden">
+                <div class="form-container">
+                    <h3>Issue Book to Student</h3>
+                    <p>Enter the Book ID and Student Name to issue a book.</p>
+                    <br>
+                    <form id="issue-book-form">
+                        <input type="text" id="issue-id" placeholder="Book ID" required>
+                        <input type="text" id="issue-student" placeholder="Student Name" required>
+                        <button type="submit" class="btn-warning">Issue Book</button>
+                    </form>
+                    <p id="issue-message" class="status-message"></p>
+                </div>
+            </section>
+
+            <section id="tab-return" class="content-section hidden">
+                <div class="form-container">
+                    <h3>Return Book to Library</h3>
+                    <p>Enter the Book ID to mark it as returned/available.</p>
+                    <br>
+                    <form id="return-book-form">
+                        <input type="text" id="return-id" placeholder="Book ID" required>
+                        <button type="submit" class="btn-success">Return Book</button>
+                    </form>
+                    <p id="return-message" class="status-message"></p>
+                </div>
+            </section>
+
+        </main>
     </div>
 
     <script src="script.js"></script>
