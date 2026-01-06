@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library Management System</title>
     <link rel="stylesheet" href="style.css">
-    </head>
+</head>
 <body>
 
     <div class="dashboard-container">
@@ -17,34 +17,19 @@
         <nav class="sidebar-nav">
           <ul>
             <li>
-              <a href="#dashboard" class="nav-link active">
-                Dashboard
-              </a>
+              <a href="#dashboard" class="nav-link active">Dashboard</a>
             </li>
             <li>
-              <a href="#books" class="nav-link">
-                Books
-              </a>
+              <a href="#books" class="nav-link">Books</a>
             </li>
             <li>
-              <a href="#issue-books" class="nav-link">
-                Issue Books
-              </a>
+              <a href="#issue-books" class="nav-link">Issue Books</a>
             </li>
             <li>
-              <a href="#return-books" class="nav-link">
-                Return Books
-              </a>
+              <a href="#return-books" class="nav-link">Return Books</a>
             </li>
             <li>
-              <a href="#students" class="nav-link">
-                Students
-              </a>
-            </li>
-            <li>
-              <a href="#settings" class="nav-link">
-                Settings
-              </a>
+              <a href="#settings" class="nav-link">Settings</a>
             </li>
           </ul>
         </nav>
@@ -55,7 +40,7 @@
           <div class="search-bar">
             <input 
               type="search" 
-              placeholder="Search books, students..." 
+              placeholder="Search books..." 
               class="search-input"
               aria-label="Search"
             >
@@ -74,23 +59,32 @@
           <section class="stats-section">
             <article class="stat-card">
               <h3 class="stat-title">Total Books</h3>
-              <p class="stat-value">2,548</p>
+              <p class="stat-value">0</p>
             </article>
 
             <article class="stat-card">
               <h3 class="stat-title">Issued Books</h3>
-              <p class="stat-value">432</p>
+              <p class="stat-value">0</p>
             </article>
 
             <article class="stat-card">
               <h3 class="stat-title">Overdue Books</h3>
-              <p class="stat-value">28</p>
+              <p class="stat-value">0</p>
             </article>
+          </section>
 
-            <article class="stat-card">
-              <h3 class="stat-title">Total Students</h3>
-              <p class="stat-value">1,205</p>
-            </article>
+          <section class="add-book-container">
+            <h3 class="section-title">Add New Book</h3>
+            <form id="book-form" class="book-form">
+                <input type="text" id="book-title" placeholder="Book Title" required>
+                <input type="text" id="student-name" placeholder="Student Name" required>
+                <input type="date" id="issue-date" required>
+                <select id="book-status">
+                    <option value="Active">Active</option>
+                    <option value="Overdue">Overdue</option>
+                </select>
+                <button type="submit" class="btn-primary">+ Add Book</button>
+            </form>
           </section>
 
           <section class="recent-activity">
@@ -104,63 +98,9 @@
                   <th>Student Name</th>
                   <th>Date of Issue</th>
                   <th>Status</th>
-                </tr>
+                  <th>Action</th> </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>BK001</td>
-                  <td>The Great Gatsby</td>
-                  <td>John Smith</td>
-                  <td>2026-01-03</td>
-                  <td>
-                    <span class="status-badge status-active">Active</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>BK002</td>
-                  <td>To Kill a Mockingbird</td>
-                  <td>Emma Johnson</td>
-                  <td>2026-01-02</td>
-                  <td>
-                    <span class="status-badge status-active">Active</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>BK003</td>
-                  <td>1984</td>
-                  <td>Michael Brown</td>
-                  <td>2025-12-28</td>
-                  <td>
-                    <span class="status-badge status-overdue">Overdue</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>BK004</td>
-                  <td>Pride and Prejudice</td>
-                  <td>Sarah Davis</td>
-                  <td>2026-01-01</td>
-                  <td>
-                    <span class="status-badge status-active">Active</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>BK005</td>
-                  <td>The Catcher in the Rye</td>
-                  <td>David Wilson</td>
-                  <td>2025-12-30</td>
-                  <td>
-                    <span class="status-badge status-active">Active</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>BK006</td>
-                  <td>Brave New World</td>
-                  <td>Lisa Anderson</td>
-                  <td>2025-12-25</td>
-                  <td>
-                    <span class="status-badge status-overdue">Overdue</span>
-                  </td>
-                </tr>
+              <tbody id="book-list">
               </tbody>
             </table>
           </section>
@@ -168,6 +108,7 @@
       </main>
     </div>
 
-<script src="script.js"></script></body>
+    <script src="script.js"></script>
+</body>
 </html>
 
