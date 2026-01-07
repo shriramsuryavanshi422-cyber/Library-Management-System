@@ -1,138 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Management System Professional</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library Management System</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-    <div id="login-container" class="login-wrapper">
-        <div class="login-box">
-            <h1>Librarian Access</h1>
-            <p>Please verify your identity to access the database.</p>
-            <form id="login-form">
-                <input type="password" id="password-input" placeholder="Enter Admin Password" required>
-                <button type="submit">Login</button>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-card">
+            <h1>LibraryMS</h1>
+            <p class="login-subtitle">
+                Enter admin password to access the library dashboard.
+            </p>
+            <form id="login-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="login-password">Admin Password</label>
+                    <input
+                        type="password"
+                        id="login-password"
+                        placeholder="Enter password"
+                        required
+                    />
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Unlock Dashboard
+                </button>
+                <div id="login-feedback" class="feedback"></div>
             </form>
-            <p id="login-error" style="color: red; display: none; margin-top: 10px;">Incorrect Password!</p>
         </div>
     </div>
 
-    <div id="app-container" class="dashboard-container hidden">
-        
+    <!-- Main App Shell -->
+    <div id="app-shell" class="app-shell hidden">
+        <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-logo">
-                <h1>LibraryMS</h1>
+            <div class="sidebar-header">
+                <span class="logo">📚</span>
+                <div class="logo-text">
+                    <h1>LibraryMS</h1>
+                    <p>Admin Panel</p>
+                </div>
             </div>
+
             <nav class="sidebar-nav">
-                <ul>
-                    <li onclick="switchTab('dashboard')">
-                        <a href="#" class="nav-link active" id="link-dashboard">Dashboard</a>
-                    </li>
-                    <li onclick="switchTab('manage')">
-                        <a href="#" class="nav-link" id="link-manage">Manage Books</a>
-                    </li>
-                    <li onclick="switchTab('issue')">
-                        <a href="#" class="nav-link" id="link-issue">Issue Book</a>
-                    </li>
-                    <li onclick="switchTab('return')">
-                        <a href="#" class="nav-link" id="link-return">Return Book</a>
-                    </li>
-                    <li onclick="logout()">
-                        <a href="#" class="nav-link logout-btn">Logout</a>
-                    </li>
-                </ul>
+                <button
+                    class="nav-link active"
+                    data-target="dashboard-tab"
+                    type="button"
+                >
+                    Dashboard
+                </button>
+                <button
+                    class="nav-link"
+                    data-target="manage-tab"
+                    type="button"
+                >
+                    Manage Books
+                </button>
+                <button
+                    class="nav-link"
+                    data-target="issue-tab"
+                    type="button"
+                >
+                    Issue Book
+                </button>
+                <button
+                    class="nav-link"
+                    data-target="return-tab"
+                    type="button"
+                >
+                    Return Book
+                </button>
             </nav>
+
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="btn btn-outline" type="button">
+                    Logout
+                </button>
+            </div>
         </aside>
 
-        <main class="main-content">
-            
+        <!-- Main Content -->
+        <main class="main">
             <header class="main-header">
-                <h2 id="page-title">Dashboard Overview</h2>
-                <div class="user-info">
-                    <span>Admin User</span>
-                    <div class="status-dot"></div>
-                </div>
+                <h2 id="main-title">Dashboard</h2>
+                <p class="main-subtitle">
+                    SPA-style library inventory with issue and return operations.
+                </p>
             </header>
 
-            <section id="tab-dashboard" class="content-section">
-                <div class="stats-grid">
+            <!-- Dashboard Tab -->
+            <section id="dashboard-tab" class="tab active" aria-label="Dashboard">
+                <div class="stat-grid">
                     <div class="stat-card">
-                        <h3>Total Books</h3>
-                        <p class="stat-number" id="total-books">0</p>
+                        <p class="stat-label">Total Books (All Copies)</p>
+                        <p id="stat-total" class="stat-value">0</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Issued Books</h3>
-                        <p class="stat-number" id="issued-books">0</p>
+                        <p class="stat-label">Books Issued</p>
+                        <p id="stat-issued" class="stat-value">0</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Available Books</h3>
-                        <p class="stat-number" id="avail-books">0</p>
+                        <p class="stat-label">Books in Library</p>
+                        <p id="stat-available" class="stat-value">0</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Quick Help</h3>
+                    <ul class="info-list">
+                        <li>
+                            Use <strong>Manage Books</strong> to maintain inventory
+                            with total and available quantities.
+                        </li>
+                        <li>
+                            Use <strong>Issue Book</strong> to issue copies to
+                            students.
+                        </li>
+                        <li>
+                            Use <strong>Return Book</strong> to increase available
+                            stock.
+                        </li>
+                        <li>
+                            Use <strong>Download Database</strong> to export
+                            Library_Data.txt as backup.
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Manage Books Tab -->
+            <section id="manage-tab" class="tab" aria-label="Manage Books">
+                <div class="card">
+                    <h3>Search Inventory</h3>
+                    <div class="search-wrapper">
+                        <input
+                            type="text"
+                            id="search-input"
+                            placeholder="Search by Book ID or Title..."
+                        />
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Add / Update Book</h3>
+                    <form
+                        id="add-book-form"
+                        class="inline-form"
+                        autocomplete="off"
+                    >
+                        <div class="form-group">
+                            <label for="book-id">Book ID (Unique)</label>
+                            <input
+                                type="text"
+                                id="book-id"
+                                placeholder="e.g. BK001"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="book-title">Title</label>
+                            <input
+                                type="text"
+                                id="book-title"
+                                placeholder="Book title"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="book-author">Author</label>
+                            <input
+                                type="text"
+                                id="book-author"
+                                placeholder="Author name"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="book-quantity">Total Quantity</label>
+                            <input
+                                type="number"
+                                id="book-quantity"
+                                min="1"
+                                placeholder="e.g. 10"
+                                required
+                            />
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            Add Book
+                        </button>
+                    </form>
+                    <div
+                        id="add-book-feedback"
+                        class="feedback"
+                        aria-live="polite"
+                    ></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header-row">
+                        <h3>Inventory</h3>
+                        <button
+                            id="download-db-btn"
+                            class="btn btn-secondary"
+                            type="button"
+                        >
+                            Download Database
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Book ID</th>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Quantity (Avail / Total)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="books-table-body"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
 
-            <section id="tab-manage" class="content-section hidden">
-                <div class="form-container">
-                    <h3>Add New Book</h3>
-                    <form id="add-book-form">
-                        <input type="text" id="new-book-title" placeholder="Book Title" required>
-                        <input type="text" id="new-book-id" placeholder="Book ID (e.g. 101)" required>
-                        <button type="submit" class="btn-primary">Add to Library</button>
+            <!-- Issue Book Tab -->
+            <section id="issue-tab" class="tab" aria-label="Issue Book">
+                <div class="card">
+                    <h3>Issue Book</h3>
+                    <form
+                        id="issue-book-form"
+                        class="inline-form"
+                        autocomplete="off"
+                    >
+                        <div class="form-group">
+                            <label for="issue-book-id">Book ID</label>
+                            <input
+                                type="text"
+                                id="issue-book-id"
+                                placeholder="Enter Book ID"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="student-name">Student Name</label>
+                            <input
+                                type="text"
+                                id="student-name"
+                                placeholder="Enter Student Name"
+                                required
+                            />
+                        </div>
+                        <button type="submit" class="btn btn-warning">
+                            Issue Book
+                        </button>
                     </form>
-                </div>
-
-                <div class="table-container">
-                    <h3>Library Database</h3>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Title</th>
-                                <th>Status</th>
-                                <th>Holder</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="book-table-body">
-                            </tbody>
-                    </table>
+                    <div
+                        id="issue-feedback"
+                        class="feedback"
+                        aria-live="polite"
+                    ></div>
                 </div>
             </section>
 
-            <section id="tab-issue" class="content-section hidden">
-                <div class="form-container">
-                    <h3>Issue Book to Student</h3>
-                    <p>Enter the Book ID and Student Name to issue a book.</p>
-                    <br>
-                    <form id="issue-book-form">
-                        <input type="text" id="issue-id" placeholder="Book ID" required>
-                        <input type="text" id="issue-student" placeholder="Student Name" required>
-                        <button type="submit" class="btn-warning">Issue Book</button>
+            <!-- Return Book Tab -->
+            <section id="return-tab" class="tab" aria-label="Return Book">
+                <div class="card">
+                    <h3>Return Book</h3>
+                    <form
+                        id="return-book-form"
+                        class="inline-form"
+                        autocomplete="off"
+                    >
+                        <div class="form-group">
+                            <label for="return-book-id">Book ID</label>
+                            <input
+                                type="text"
+                                id="return-book-id"
+                                placeholder="Enter Book ID"
+                                required
+                            />
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            Mark as Returned
+                        </button>
                     </form>
-                    <p id="issue-message" class="status-message"></p>
+                    <div
+                        id="return-feedback"
+                        class="feedback"
+                        aria-live="polite"
+                    ></div>
                 </div>
             </section>
-
-            <section id="tab-return" class="content-section hidden">
-                <div class="form-container">
-                    <h3>Return Book to Library</h3>
-                    <p>Enter the Book ID to mark it as returned/available.</p>
-                    <br>
-                    <form id="return-book-form">
-                        <input type="text" id="return-id" placeholder="Book ID" required>
-                        <button type="submit" class="btn-success">Return Book</button>
-                    </form>
-                    <p id="return-message" class="status-message"></p>
-                </div>
-            </section>
-
         </main>
     </div>
 
     <script src="script.js"></script>
 </body>
 </html>
+
 

@@ -1,199 +1,368 @@
-// --- CONFIGURATION ---
-const ADMIN_PASSWORD = "admin123"; // Set your password here
+// ----- Constants -----
+const STORAGE_KEY = "library_db_inventory";
+const ADMIN_PASSWORD = "admin123";
 
-// --- STATE MANAGEMENT ---
-// Load books from memory, or start with an empty library
-let books = JSON.parse(localStorage.getItem('library_db')) || [];
+// ----- DOM Elements -----
+const loginScreen = document.getElementById("login-screen");
+const loginForm = document.getElementById("login-form");
+const loginPasswordInput = document.getElementById("login-password");
+const loginFeedback = document.getElementById("login-feedback");
 
-// --- 1. LOGIN SYSTEM ---
-const loginForm = document.getElementById('login-form');
-const loginContainer = document.getElementById('login-container');
-const appContainer = document.getElementById('app-container');
-const passwordInput = document.getElementById('password-input');
-const loginError = document.getElementById('login-error');
+const appShell = document.getElementById("app-shell");
+const navLinks = document.querySelectorAll(".nav-link");
+const mainTitle = document.getElementById("main-title");
 
-loginForm.addEventListener('submit', function(e) {
-    e.preventDefault(); // Stop page refresh
-    
-    if (passwordInput.value === ADMIN_PASSWORD) {
-        // Success: Hide Login, Show App
-        loginContainer.classList.add('hidden');
-        appContainer.classList.remove('hidden');
-        renderDashboard(); // Update stats immediately
+const statTotal = document.getElementById("stat-total");
+const statIssued = document.getElementById("stat-issued");
+const statAvailable = document.getElementById("stat-available");
+
+const searchInput = document.getElementById("search-input");
+const addBookForm = document.getElementById("add-book-form");
+const addBookFeedback = document.getElementById("add-book-feedback");
+const bookIdInput = document.getElementById("book-id");
+const bookTitleInput = document.getElementById("book-title");
+const bookAuthorInput = document.getElementById("book-author");
+const bookQuantityInput = document.getElementById("book-quantity");
+const booksTableBody = document.getElementById("books-table-body");
+const downloadDbBtn = document.getElementById("download-db-btn");
+
+const issueBookForm = document.getElementById("issue-book-form");
+const issueBookIdInput = document.getElementById("issue-book-id");
+const studentNameInput = document.getElementById("student-name");
+const issueFeedback = document.getElementById("issue-feedback");
+
+const returnBookForm = document.getElementById("return-book-form");
+const returnBookIdInput = document.getElementById("return-book-id");
+const returnFeedback = document.getElementById("return-feedback");
+
+const logoutBtn = document.getElementById("logout-btn");
+
+// ----- Storage Helpers -----
+function loadBooks() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+        console.error("Error parsing localStorage data:", err);
+        return [];
+    }
+}
+
+function saveBooks(books) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+}
+
+// ----- Stats -----
+function computeStats(books) {
+    let totalCopies = 0;
+    let availableCopies = 0;
+
+    books.forEach((b) => {
+        totalCopies += b.totalQty;
+        availableCopies += b.availableQty;
+    });
+
+    const issuedCopies = totalCopies - availableCopies;
+    return {
+        total: totalCopies,
+        issued: issuedCopies,
+        available: availableCopies,
+    };
+}
+
+function renderStats() {
+    const books = loadBooks();
+    const { total, issued, available } = computeStats(books);
+    statTotal.textContent = total;
+    statIssued.textContent = issued;
+    statAvailable.textContent = available;
+}
+
+// ----- UI Helpers -----
+function setFeedback(element, message, type) {
+    element.textContent = message;
+    element.classList.remove("success", "error");
+    if (type === "success") {
+        element.classList.add("success");
+    } else if (type === "error") {
+        element.classList.add("error");
+    }
+}
+
+function clearAllFeedbacks() {
+    [loginFeedback, addBookFeedback, issueFeedback, returnFeedback].forEach(
+        (el) => {
+            el.textContent = "";
+            el.classList.remove("success", "error");
+        }
+    );
+}
+
+// ----- Table Rendering -----
+function renderBooksTable() {
+    const books = loadBooks();
+    const filter = searchInput.value.trim().toLowerCase();
+    booksTableBody.innerHTML = "";
+
+    books
+        .filter((book) => {
+            if (!filter) return true;
+            const idMatch = book.id.toLowerCase().includes(filter);
+            const titleMatch = book.title.toLowerCase().includes(filter);
+            return idMatch || titleMatch;
+        })
+        .forEach((book) => {
+            const tr = document.createElement("tr");
+
+            const tdId = document.createElement("td");
+            tdId.textContent = book.id;
+
+            const tdTitle = document.createElement("td");
+            tdTitle.textContent = book.title;
+
+            const tdAuthor = document.createElement("td");
+            tdAuthor.textContent = book.author;
+
+            const tdQty = document.createElement("td");
+            const qtySpan = document.createElement("span");
+            qtySpan.textContent = `${book.availableQty} / ${book.totalQty}`;
+            if (book.availableQty === 0) {
+                qtySpan.className = "qty-low";
+            } else {
+                qtySpan.className = "qty-available";
+            }
+            tdQty.appendChild(qtySpan);
+
+            const tdActions = document.createElement("td");
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "Delete";
+            delBtn.className = "btn btn-danger";
+            delBtn.style.fontSize = "0.8rem";
+            delBtn.style.padding = "0.35rem 0.7rem";
+            delBtn.addEventListener("click", () => handleDeleteBook(book.id));
+            tdActions.appendChild(delBtn);
+
+            tr.append(tdId, tdTitle, tdAuthor, tdQty, tdActions);
+            booksTableBody.appendChild(tr);
+        });
+}
+
+function refreshUI() {
+    renderStats();
+    renderBooksTable();
+}
+
+// ----- Authentication -----
+loginForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    clearAllFeedbacks();
+
+    const entered = loginPasswordInput.value.trim();
+    if (entered === ADMIN_PASSWORD) {
+        loginScreen.classList.add("hidden");
+        appShell.classList.remove("hidden");
+        loginPasswordInput.value = "";
     } else {
-        // Error: Show error message
-        loginError.style.display = 'block';
-        passwordInput.value = ''; // Clear input
+        setFeedback(loginFeedback, "Incorrect password.", "error");
     }
 });
 
-function logout() {
-    location.reload(); // Reloads page to lock it again
-}
+// ----- Navigation (SPA Tabs) -----
+navLinks.forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        if (!targetId) return;
 
-// --- 2. TAB NAVIGATION ---
-function switchTab(tabName) {
-    // 1. Hide all content sections
-    document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.add('hidden');
+        navLinks.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        document.querySelectorAll(".tab").forEach((tab) => {
+            tab.classList.remove("active");
+        });
+
+        const targetTab = document.getElementById(targetId);
+        if (targetTab) {
+            targetTab.classList.add("active");
+        }
+
+        if (targetId === "dashboard-tab") {
+            mainTitle.textContent = "Dashboard";
+        } else if (targetId === "manage-tab") {
+            mainTitle.textContent = "Manage Books";
+        } else if (targetId === "issue-tab") {
+            mainTitle.textContent = "Issue Book";
+        } else if (targetId === "return-tab") {
+            mainTitle.textContent = "Return Book";
+        }
+
+        clearAllFeedbacks();
     });
+});
 
-    // 2. Remove 'active' class from all sidebar links
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-    });
+// ----- Manage Books (Inventory) -----
+addBookForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    clearAllFeedbacks();
 
-    // 3. Show the specific tab and highlight link
-    document.getElementById('tab-' + tabName).classList.remove('hidden');
-    
-    // 4. Highlight the correct sidebar button
-    const activeLink = document.querySelector(`li[onclick="switchTab('${tabName}')"] .nav-link`);
-    if(activeLink) activeLink.classList.add('active');
+    const id = bookIdInput.value.trim();
+    const title = bookTitleInput.value.trim();
+    const author = bookAuthorInput.value.trim();
+    const qty = parseInt(bookQuantityInput.value.trim(), 10);
 
-    // 5. Update Header Title
-    const titles = {
-        'dashboard': 'Dashboard Overview',
-        'manage': 'Manage Library Books',
-        'issue': 'Issue Book to Student',
-        'return': 'Return Book'
-    };
-    document.getElementById('page-title').innerText = titles[tabName];
-    
-    // 6. Refresh data if needed
-    if(tabName === 'dashboard') renderDashboard();
-    if(tabName === 'manage') renderTable();
-}
-
-// --- 3. DASHBOARD LOGIC ---
-function renderDashboard() {
-    const total = books.length;
-    const issued = books.filter(b => b.status === 'Issued').length;
-    const available = total - issued;
-
-    document.getElementById('total-books').innerText = total;
-    document.getElementById('issued-books').innerText = issued;
-    document.getElementById('avail-books').innerText = available;
-}
-
-// --- 4. MANAGE BOOKS (ADD/DELETE) ---
-const addBookForm = document.getElementById('add-book-form');
-const tableBody = document.getElementById('book-table-body');
-
-// Add Book
-addBookForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const title = document.getElementById('new-book-title').value;
-    const id = document.getElementById('new-book-id').value;
-
-    // Validation: Check if ID exists
-    if (books.find(b => b.id === id)) {
-        alert('Error: A book with this ID already exists!');
+    if (!id || !title || !author || isNaN(qty) || qty <= 0) {
+        setFeedback(
+            addBookFeedback,
+            "All fields are required and quantity must be greater than 0.",
+            "error"
+        );
         return;
     }
 
-    // Add to array
-    books.push({
-        id: id,
-        title: title,
-        status: 'Available',
-        holder: '-'
-    });
+    const books = loadBooks();
+    const exists = books.some(
+        (b) => b.id.toLowerCase() === id.toLowerCase()
+    );
 
-    saveData();
-    renderTable(); // Refresh table
-    addBookForm.reset(); // Clear form
-    alert('Book Added Successfully');
+    if (exists) {
+        setFeedback(addBookFeedback, "Book ID already exists.", "error");
+        return;
+    }
+
+    const newBook = {
+        id,
+        title,
+        author,
+        totalQty: qty,
+        availableQty: qty,
+    };
+
+    books.push(newBook);
+    saveBooks(books); // auto-save
+    addBookForm.reset();
+    refreshUI();
+    setFeedback(addBookFeedback, "Book added to inventory.", "success");
 });
 
-// Delete Book
-function deleteBook(index) {
-    if(confirm('Are you sure you want to delete this book?')) {
-        books.splice(index, 1);
-        saveData();
-        renderTable();
+function handleDeleteBook(id) {
+    const books = loadBooks();
+    const updated = books.filter(
+        (b) => b.id.toLowerCase() !== id.toLowerCase()
+    );
+    saveBooks(updated);
+    refreshUI();
+    setFeedback(addBookFeedback, "Book removed from inventory.", "success");
+}
+
+// ----- Search (Real-time filter) -----
+searchInput.addEventListener("input", () => {
+    renderBooksTable();
+});
+
+// ----- Download Database (Library_Data.txt) -----
+function downloadTextFile(filename, text) {
+    const blob = new Blob([text], { type: "text/plain" }); // Blob download pattern.[web:29][web:32][web:33]
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(link.href), 1500);
+}
+
+downloadDbBtn.addEventListener("click", () => {
+    const books = loadBooks();
+    const payload = JSON.stringify(books, null, 2);
+    downloadTextFile("Library_Data.txt", payload);
+});
+
+// ----- Issue Book -----
+issueBookForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    clearAllFeedbacks();
+
+    const id = issueBookIdInput.value.trim();
+    const studentName = studentNameInput.value.trim();
+
+    if (!id || !studentName) {
+        setFeedback(
+            issueFeedback,
+            "Book ID and Student Name are required.",
+            "error"
+        );
+        return;
     }
-}
 
-// Render Table
-function renderTable() {
-    tableBody.innerHTML = ''; // Clear current table
-    
-    books.forEach((book, index) => {
-        const row = document.createElement('tr');
-        
-        // Color code status
-        const statusColor = book.status === 'Available' ? 'green' : 'red';
-        
-        row.innerHTML = `
-            <td>${book.id}</td>
-            <td>${book.title}</td>
-            <td style="color:${statusColor}; font-weight:bold;">${book.status}</td>
-            <td>${book.holder}</td>
-            <td>
-                <button class="btn-delete" onclick="deleteBook(${index})">Delete</button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
-
-// --- 5. ISSUE BOOK LOGIC ---
-document.getElementById('issue-book-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const id = document.getElementById('issue-id').value;
-    const student = document.getElementById('issue-student').value;
-    const message = document.getElementById('issue-message');
-
-    const book = books.find(b => b.id === id);
+    const books = loadBooks();
+    const book = books.find(
+        (b) => b.id.toLowerCase() === id.toLowerCase()
+    );
 
     if (!book) {
-        setStatus(message, "Error: Book ID not found.", "red");
-    } else if (book.status === 'Issued') {
-        setStatus(message, `Error: Book is already issued to ${book.holder}.`, "red");
-    } else {
-        // Perform Issue
-        book.status = 'Issued';
-        book.holder = student;
-        saveData();
-        setStatus(message, "Success: Book issued successfully!", "green");
-        this.reset();
+        setFeedback(issueFeedback, "Book ID not found.", "error");
+        return;
     }
+
+    if (book.availableQty <= 0) {
+        setFeedback(
+            issueFeedback,
+            "All copies are currently issued.",
+            "error"
+        );
+        return;
+    }
+
+    book.availableQty -= 1;
+    saveBooks(books);
+    refreshUI();
+    issueBookForm.reset();
+    setFeedback(issueFeedback, "Book issued successfully.", "success");
 });
 
-// --- 6. RETURN BOOK LOGIC ---
-document.getElementById('return-book-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const id = document.getElementById('return-id').value;
-    const message = document.getElementById('return-message');
+// ----- Return Book -----
+returnBookForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    clearAllFeedbacks();
 
-    const book = books.find(b => b.id === id);
+    const id = returnBookIdInput.value.trim();
+    if (!id) {
+        setFeedback(returnFeedback, "Book ID is required.", "error");
+        return;
+    }
+
+    const books = loadBooks();
+    const book = books.find(
+        (b) => b.id.toLowerCase() === id.toLowerCase()
+    );
 
     if (!book) {
-        setStatus(message, "Error: Book ID not found.", "red");
-    } else if (book.status === 'Available') {
-        setStatus(message, "Error: This book is already in the library.", "orange");
-    } else {
-        // Perform Return
-        book.status = 'Available';
-        book.holder = '-';
-        saveData();
-        setStatus(message, "Success: Book returned to library.", "green");
-        this.reset();
+        setFeedback(returnFeedback, "Book ID not found.", "error");
+        return;
     }
+
+    if (book.availableQty >= book.totalQty) {
+        setFeedback(
+            returnFeedback,
+            "All copies are already in the library.",
+            "error"
+        );
+        return;
+    }
+
+    book.availableQty += 1;
+    saveBooks(books);
+    refreshUI();
+    returnBookForm.reset();
+    setFeedback(returnFeedback, "Book returned successfully.", "success");
 });
 
-// --- HELPER FUNCTIONS ---
-function saveData() {
-    localStorage.setItem('library_db', JSON.stringify(books));
-    renderDashboard(); // Update stats whenever data changes
-}
+// ----- Logout -----
+logoutBtn.addEventListener("click", () => {
+    window.location.reload();
+});
 
-function setStatus(element, text, color) {
-    element.innerText = text;
-    element.style.color = color;
-    // Clear message after 3 seconds
-    setTimeout(() => { element.innerText = ''; }, 3000);
-}
+// ----- Initial Render -----
+refreshUI();
 
-// Initial Load
-renderDashboard();
